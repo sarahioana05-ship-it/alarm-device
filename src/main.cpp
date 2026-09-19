@@ -6,7 +6,7 @@
 
 const char* ssid = "DIGI-33AS";
 const char* password = "ehhCFYFhTt";
-int alarmState=0; //alarm state - cancelled 0 ; set 1 ; ringing 2
+
 int alarmHour = 0; //hour of the alarm
 int alarmMinute = 0; // min of the alarm
 int setMode = 0; // mode for switching between hours and mins when setting alarm
@@ -19,9 +19,17 @@ int lastalarmMinute=-1;
 unsigned long alarmStartTime; // the start of an alarm
 unsigned long buttonPressTime; //total time while button was presseed
 bool buttonPressed = false; //check if button is still pressed or not
-bool alarmset = false;
+bool alarmSet = false;
+bool alarmAlreadyExists = false;
+bool alarmRinging=false; //true when alarm rings
+bool alarmDuplicate=false;
 
 int menuState=0; // 0- main menu; 1- set alarms; 2- check alarms; 3- alarm details; 4- setting alarm time
+int menuSelection=1; // pot choice for menu menuSelection = (potValue * 2L) / 4096;
+int lastmenuSelection=-1;
+int alarmSelection; //pot choice for alarms
+bool menuSelect = false;
+int lastCheckAlarm=-1;
 
 struct Alarm // the alarm structure that has the following characteristics
 {
@@ -56,7 +64,8 @@ void setup() {
 
 }
 
-void loop() {
+void loop() 
+{
     //gettin and showing real time on screen
     struct tm timeinfo;
     getLocalTime(&timeinfo);
@@ -64,103 +73,217 @@ void loop() {
     if (timeinfo.tm_min != lastMinute)
     {
         Serial.print("Current time: ");
+        if (timeinfo.tm_hour < 10) Serial.print("0");
         Serial.print(timeinfo.tm_hour);
         Serial.print(":");
+        if (timeinfo.tm_min < 10) Serial.print("0");
         Serial.println(timeinfo.tm_min);
         lastMinute=timeinfo.tm_min;
-    }
 
+        if (menuState==0)
+          Serial.println("Main Menu");
+        if (menuState==1)
+          Serial.println("Set Alarms Menu");
+        if (menuState==2)
+          Serial.println("Check Alarms Menu");
+    }
     potValue = analogRead(1);
-    if (alarmset == true)
+
+    //menu state 0 -> 1/2 set alarms/check alarms
+    if (menuState==0 && digitalRead(03)==LOW && menuSelect==false)
     {
-      if(setMode==0)
-      {
-        alarmHour = (potValue * 24L) / 4096;
+      menuSelect = true;
+      Serial.println("Select: SET ALARMS || CHECK ALARMS  ||  Press Right B to select or Left B to cancel");
+      digitalWrite(18,HIGH);
+      delay(100);
+      digitalWrite(18,LOW);
+      delay(200);
+    }
 
-        if (alarmHour > 23)
-            alarmHour = 23;
+    //right button enter the menu selection
+    if (menuState==0 && menuSelect==true)
+    {
+      if (menuSelection == 1 && potValue > 2500)
+        menuSelection = 2;
+      else if (menuSelection == 2 && potValue < 1500)
+        menuSelection = 1;
+
+      if (lastmenuSelection != menuSelection)
+      {
+        if(menuSelection==1)
+          Serial.println("> SET ALARMS");
+        else  
+          Serial.println("> CHECK ALARMS");
+
+        lastmenuSelection = menuSelection;
       }
-      else
+      if (digitalRead(03)==LOW)
       {
-        alarmMinute = (potValue * 12L) / 4096 * 5;
-
-        if (alarmMinute > 55)
-            alarmMinute = 55;
-      }
-
-      if (alarmHour != lastalarmHour || alarmMinute != lastalarmMinute)
-      {
-        Serial.print("Alarm time: ");
-        if (alarmHour < 10) Serial.print("0");
-        Serial.print(alarmHour);
-        Serial.print(":");
-        if (alarmMinute < 10) Serial.print("0");
-        Serial.println(alarmMinute);
-
-        lastalarmHour=alarmHour;
-        lastalarmMinute=alarmMinute;
+        menuSelect = false;
+        menuState = menuSelection;
+        Serial.print("Entered menu: ");
+        if (menuState == 1)
+          Serial.println("SET ALARMS");
+        else if (menuState == 2)
+          Serial.println("CHECK ALARMS");
+        
+        digitalWrite(18,HIGH);
+        delay(100);
+        digitalWrite(18,LOW);
+        delay(200);
       }
     }
 
-    //right button - alarm setting
-    if (digitalRead(03) == LOW && buttonPressed == false)
+    //left button to return to main
+    if((menuState==1 && alarmSet==false) && digitalRead(02)==LOW)
     {
-        buttonPressTime=millis();
-        buttonPressed = true;
-    }
-    if(digitalRead(03) == HIGH && buttonPressed == true)
-    {
-        unsigned long press = millis()-buttonPressTime;
+      Serial.println("Back to Main menu");
+      menuState=0;
 
-        if (alarmset == false)
+      digitalWrite(18,HIGH);
+      delay(100);
+      digitalWrite(18,LOW);
+      delay(200);
+    }
+
+    if(menuState==2 && digitalRead(02)==LOW)
+    {
+      Serial.println("Back to Main menu");
+      menuState=0;
+
+      digitalWrite(18,HIGH);
+      delay(100);
+      digitalWrite(18,LOW);
+      delay(200);
+    }
+
+    //menu 1 - set alarm menu
+    if (menuState==1)
+    {
+
+      if (alarmSet == true)
+      {
+        if(setMode==0)
         {
-          alarmset=true;
-          setMode=0;
-          Serial.println("Alarm setting mode");
-          Serial.println("Adjust hours with potentiometer");
+          alarmHour = (potValue * 24L) / 4096;
+
+          if (alarmHour > 23)
+              alarmHour = 23;
         }
         else
         {
-          if(press >=800)
+          alarmMinute = (potValue * 12L) / 4096 * 5;
+
+          if (alarmMinute > 55)
+              alarmMinute = 55;
+        }
+
+        if (alarmHour != lastalarmHour || alarmMinute != lastalarmMinute)
+        {
+          Serial.print("Alarm time: ");
+          if (alarmHour < 10) Serial.print("0");
+          Serial.print(alarmHour);
+          Serial.print(":");
+          if (alarmMinute < 10) Serial.print("0");
+          Serial.println(alarmMinute);
+
+          lastalarmHour=alarmHour;
+          lastalarmMinute=alarmMinute;
+        }
+      }
+
+      //right button - alarm setting
+      if (digitalRead(03) == LOW && buttonPressed == false)
+      {
+          buttonPressTime=millis();
+          buttonPressed = true;
+      }
+      if(digitalRead(03) == HIGH && buttonPressed == true)
+      {
+          unsigned long press = millis()-buttonPressTime;
+
+          if (alarmSet == false)
           {
-            if(setMode==0) setMode=1;
-            else setMode=0;
+            alarmSet = true;
+            setMode=0;
+            Serial.println("Alarm setting mode");
+            Serial.println("Adjust hours with potentiometer");
+            digitalWrite(18,HIGH);
+            delay(100);
+            digitalWrite(18,LOW);
+            delay(200);
           }
-        
           else
           {
-              Serial.print("alarm is set for ");
-              Serial.print(alarmHour);
-              Serial.print(":");
-              Serial.println(alarmMinute);
-              newAlarm.time=alarmHour*60+alarmMinute;
-              alarms.push_back({newAlarm});
+            if(press >=800)
+            {
+              if(setMode==0) setMode=1;
+              else setMode=0;
+            }
+          
+            else
+            {
+              alarmDuplicate=false;
 
-              alarmset=false;
+              newAlarm.time=alarmHour*60+alarmMinute;
+              for(i=0;i<alarms.size();i++)
+              {
+                if (newAlarm.time==alarms[i].time)
+                {
+                  Serial.println("Alarm already exists!");
+                  Serial.println("Choose another time!");
+                  alarmDuplicate=true;
+                }
+              }
+
+              if (alarmDuplicate==false)
+              {
+                Serial.print("alarm is set for ");
+                if (alarmHour < 10) Serial.print("0");
+                Serial.print(alarmHour);
+                Serial.print(":");
+                if (alarmMinute < 10) Serial.print("0");
+                Serial.println(alarmMinute);
+
+                int insertPosition = alarms.size();
+                for(i=0; i<alarms.size(); i++)
+                {
+                    if(newAlarm.time < alarms[i].time)
+                    {
+                        insertPosition = i;
+                        break;
+                    }
+                }
+                alarms.insert(alarms.begin() + insertPosition, newAlarm);
+
+                alarmSet = false;
+              }
 
               digitalWrite(18,HIGH);
               delay(100);
               digitalWrite(18,LOW);
               delay(200);
+            }
           }
-        }
-        buttonPressed = false;
+          buttonPressed = false;
+      }
+
+      //left button cancel the alarm
+      if (digitalRead(02) == LOW && alarmSet == true)
+      {
+          Serial.println("cancel");
+          alarmSet = false;
+          alarmHour=0;
+          alarmMinute=0;
+
+          digitalWrite(18,HIGH);
+          delay(100);
+          digitalWrite(18,LOW);
+          delay(200);
+      }
     }
 
-    if(digitalRead(02) == LOW && alarmset == true)
-    {
-        Serial.println("cancel");
-        alarmset=false;
-        alarmHour=0;
-        alarmMinute=0;
-
-        digitalWrite(18,HIGH);
-        delay(100);
-        digitalWrite(18,LOW);
-        delay(200);
-    }
-
-    // sounding alarm
+    //ringing alarm
     for(i=0;i<alarms.size();i++)
     {
         if (timeNow == alarms[i].time && alarms[i].enabled==true)
@@ -172,17 +295,17 @@ void loop() {
 
                 alarmStartTime=millis();
                 alarms[i].enabled=false;
-                alarmState=2;
+                alarmRinging=true;
             }
         
-        if (alarmState == 2)
+        if (alarmRinging == true)
         {
           if (digitalRead(02)==LOW)
           {
             Serial.println("alarm stoped");
             digitalWrite(18, LOW);
             noTone(17);
-            alarmState=1;
+            alarmRinging=false;
 
             delay(200);
           }
@@ -191,8 +314,43 @@ void loop() {
             Serial.println("alarm finished");
             digitalWrite(18, LOW);
             noTone(17);
-            alarmState=1;
+            alarmRinging=false;
           }
         }
-    } 
-}
+    }
+
+    //menu 2 - check alarms
+
+    //!! i need to add no alarms case alarms.size()==0
+    if (menuState==2)
+    {
+      i=(potValue * alarms.size()) / 4096;
+      if (lastCheckAlarm != i)
+      {
+        if (alarms[i].time / 60 <0) Serial.print("0");
+        Serial.print(alarms[i].time / 60);
+        Serial.print(":");
+        if (alarms[i].time % 60 <0) Serial.print("0");
+        Serial.println(alarms[i].time % 60);
+
+        if (alarms[i].enabled == true)
+        Serial.println("enabled");
+        else
+        Serial.println("disabled");
+        lastCheckAlarm=i;
+      }
+    }
+  }
+
+  // add no alarms case
+  // try 100nF capacitor on pot
+  // add cancel/delete option in checking alarms menu
+  // add ring alarm daily/every x day of the week/just once
+  // add scheduele on UI for the current day
+  // make scheduele for the current day show only the tasks for the next 3 hours
+  // make tasks have different characteristics - urgent, important, daily, pills, optional
+  // make important/urgent task for any other day constantly be shown on screen
+  // make phone connection to send tasks with characteristic date and time
+  // add scheduele menu
+  // add delete option in menu
+  // add characteristic change in menu
