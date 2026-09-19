@@ -21,8 +21,6 @@ unsigned long buttonPressTime; //total time while button was presseed
 bool buttonPressed = false; //check if button is still pressed or not
 bool alarmset = false;
 
-int menuState=0; // 0- main menu; 1- set alarms; 2- check alarms; 3- alarm details; 4- setting alarm time
-
 struct Alarm // the alarm structure that has the following characteristics
 {
     int time; // the alarm time
