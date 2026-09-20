@@ -4,31 +4,40 @@
 #include <vector>
 
 
-const char* ssid = "DIGI-33AS";
-const char* password = "ehhCFYFhTt";
+const char* ssid = "MEK_2.4G"; //"DIGI-33AS";
+const char* password = "2pc8X64w"; //"ehhCFYFhTt";
 
 int alarmHour = 0; //hour of the alarm
 int alarmMinute = 0; // min of the alarm
+
 int setMode = 0; // mode for switching between hours and mins when setting alarm
+
 int lastMinute=-1; //last minute for refreshing the real time print
 int timeNow; // real time
+
 int i;
-int potValue; // potentiometer
+
+int rawValue; // potentiometer
+
 int lastalarmHour=-1; // for printing alarm time setting
 int lastalarmMinute=-1;
+
 unsigned long alarmStartTime; // the start of an alarm
+
 unsigned long buttonPressTime; //total time while button was presseed
 bool buttonPressed = false; //check if button is still pressed or not
+
 bool alarmSet = false;
 bool alarmAlreadyExists = false;
 bool alarmRinging=false; //true when alarm rings
 bool alarmDuplicate=false;
 
 int menuState=0; // 0- main menu; 1- set alarms; 2- check alarms; 3- alarm details; 4- setting alarm time
-int menuSelection=1; // pot choice for menu menuSelection = (potValue * 2L) / 4096;
+int menuSelection=1; // pot choice for menu
 int lastmenuSelection=-1;
-int alarmSelection; //pot choice for alarms
 bool menuSelect = false;
+
+int alarmSelection=0; //pot choice for alarms
 int lastCheckAlarm=-1;
 
 struct Alarm // the alarm structure that has the following characteristics
@@ -39,6 +48,32 @@ struct Alarm // the alarm structure that has the following characteristics
 
 Alarm newAlarm;
 std::vector<Alarm> alarms; // vector of alarms
+
+int getPotValue(int currentValue, int numberOfValues)
+{
+    rawValue = analogRead(01);
+    int range = 4096/numberOfValues;
+    int lowerLimit = currentValue * range;
+    int upperLimit = (currentValue + 1) * range;
+
+    if (currentValue > 0 && rawValue < lowerLimit - 100)
+            currentValue--;
+    if (currentValue < numberOfValues - 1 && rawValue > upperLimit + 100)
+            currentValue++;
+
+    return currentValue;
+}
+
+int getPotPosition(int numberOfValues)
+{
+    rawValue = analogRead(1);
+    int value = (rawValue * numberOfValues) / 4096;
+
+    if (value >= numberOfValues)
+        value = numberOfValues - 1;
+
+    return value;
+}
 
 void setup() {
     Serial.begin(115200);
@@ -87,13 +122,13 @@ void loop()
         if (menuState==2)
           Serial.println("Check Alarms Menu");
     }
-    potValue = analogRead(1);
 
     //menu state 0 -> 1/2 set alarms/check alarms
     if (menuState==0 && digitalRead(03)==LOW && menuSelect==false)
     {
       menuSelect = true;
-      Serial.println("Select: SET ALARMS || CHECK ALARMS  ||  Press Right B to select or Left B to cancel");
+      Serial.println("Select: SET ALARMS || CHECK ALARMS");
+      Serial.println("Press Right B to select or Left B to cancel");
       digitalWrite(18,HIGH);
       delay(100);
       digitalWrite(18,LOW);
@@ -103,14 +138,11 @@ void loop()
     //right button enter the menu selection
     if (menuState==0 && menuSelect==true)
     {
-      if (menuSelection == 1 && potValue > 2500)
-        menuSelection = 2;
-      else if (menuSelection == 2 && potValue < 1500)
-        menuSelection = 1;
+      menuSelection=getPotValue(menuSelection,2);
 
       if (lastmenuSelection != menuSelection)
       {
-        if(menuSelection==1)
+        if(menuSelection==0)
           Serial.println("> SET ALARMS");
         else  
           Serial.println("> CHECK ALARMS");
@@ -120,7 +152,7 @@ void loop()
       if (digitalRead(03)==LOW)
       {
         menuSelect = false;
-        menuState = menuSelection;
+        menuState = menuSelection + 1;
         Serial.print("Entered menu: ");
         if (menuState == 1)
           Serial.println("SET ALARMS");
@@ -164,19 +196,9 @@ void loop()
       if (alarmSet == true)
       {
         if(setMode==0)
-        {
-          alarmHour = (potValue * 24L) / 4096;
-
-          if (alarmHour > 23)
-              alarmHour = 23;
-        }
+          alarmHour =getPotValue(alarmHour,24);
         else
-        {
-          alarmMinute = (potValue * 12L) / 4096 * 5;
-
-          if (alarmMinute > 55)
-              alarmMinute = 55;
-        }
+          alarmMinute =getPotValue(alarmMinute/5,12) * 5;
 
         if (alarmHour != lastalarmHour || alarmMinute != lastalarmMinute)
         {
@@ -206,8 +228,11 @@ void loop()
           {
             alarmSet = true;
             setMode=0;
+            alarmHour = getPotPosition(24);
+            lastalarmHour = -1;
+            lastalarmMinute = -1;
             Serial.println("Alarm setting mode");
-            Serial.println("Adjust hours with potentiometer");
+            Serial.println("Adjust hours with the pot");
             digitalWrite(18,HIGH);
             delay(100);
             digitalWrite(18,LOW);
@@ -217,8 +242,20 @@ void loop()
           {
             if(press >=800)
             {
-              if(setMode==0) setMode=1;
-              else setMode=0;
+              if(setMode==0) 
+              {
+                Serial.println("Adjust minutes with the pot");
+                alarmMinute=getPotPosition(12)*5;
+                lastalarmMinute = -1;
+                setMode=1;
+              }
+              else 
+              {
+                Serial.println("Adjust hours with the pot");
+                alarmHour = getPotPosition(24);
+                lastalarmHour = -1;
+                setMode=0;
+              }
             }
           
             else
@@ -268,13 +305,21 @@ void loop()
           buttonPressed = false;
       }
 
-      //left button cancel the alarm
+      if (digitalRead(02)==LOW && alarmRinging==true)
+          {
+            Serial.println("alarm stoped");
+            digitalWrite(18, LOW);
+            noTone(17);
+            alarmRinging=false;
+
+            delay(200);
+          }
+
+      //left button cancel the alarm setting
       if (digitalRead(02) == LOW && alarmSet == true)
       {
           Serial.println("cancel");
           alarmSet = false;
-          alarmHour=0;
-          alarmMinute=0;
 
           digitalWrite(18,HIGH);
           delay(100);
@@ -320,30 +365,37 @@ void loop()
     }
 
     //menu 2 - check alarms
-
-    //!! i need to add no alarms case alarms.size()==0
     if (menuState==2)
     {
-      i=(potValue * alarms.size()) / 4096;
-      if (lastCheckAlarm != i)
+      alarmSelection=getPotPosition(alarms.size());
+      if(alarms.size()==0)
       {
-        if (alarms[i].time / 60 <0) Serial.print("0");
-        Serial.print(alarms[i].time / 60);
-        Serial.print(":");
-        if (alarms[i].time % 60 <0) Serial.print("0");
-        Serial.println(alarms[i].time % 60);
+        Serial.println("No existing alarms!");
+        Serial.println("Back to main menu");
+        menuState=0;
+      }
 
-        if (alarms[i].enabled == true)
-        Serial.println("enabled");
-        else
-        Serial.println("disabled");
-        lastCheckAlarm=i;
+      else
+      {
+        alarmSelection=getPotValue(alarmSelection,alarms.size());
+        if (lastCheckAlarm != alarmSelection)
+        {
+          if (alarms[alarmSelection].time / 60 <10) Serial.print("0");
+          Serial.print(alarms[alarmSelection].time / 60);
+          Serial.print(":");
+          if (alarms[alarmSelection].time % 60 <10) Serial.print("0");
+          Serial.println(alarms[alarmSelection].time % 60);
+
+          if (alarms[alarmSelection].enabled == true)
+          Serial.println("enabled");
+          else
+          Serial.println("disabled");
+          lastCheckAlarm=alarmSelection;
+        }
       }
     }
   }
 
-  // add no alarms case
-  // try 100nF capacitor on pot
   // add cancel/delete option in checking alarms menu
   // add ring alarm daily/every x day of the week/just once
   // add scheduele on UI for the current day
