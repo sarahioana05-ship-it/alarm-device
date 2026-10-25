@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <time.h>
 #include <vector>
+#include <potentiometer.h>
 
 
 const char* ssid = "DIGI-33AS"; //"DIGI-33AS";
@@ -16,8 +17,6 @@ int lastMinute=-1; //last minute for refreshing the real time print
 int timeNow; // real time
 
 int i;
-
-int rawValue; // potentiometer
 
 int lastalarmHour=-1; // for printing alarm time setting
 int lastalarmMinute=-1;
@@ -48,32 +47,6 @@ struct Alarm // the alarm structure that has the following characteristics
 
 Alarm newAlarm;
 std::vector<Alarm> alarms; // vector of alarms
-
-int getPotValue(int currentValue, int numberOfValues)
-{
-    rawValue = analogRead(01);
-    int range = 4096/numberOfValues;
-    int lowerLimit = currentValue * range;
-    int upperLimit = (currentValue + 1) * range;
-
-    if (currentValue > 0 && rawValue < lowerLimit - 100)
-            currentValue--;
-    if (currentValue < numberOfValues - 1 && rawValue > upperLimit + 100)
-            currentValue++;
-
-    return currentValue;
-}
-
-int getPotPosition(int numberOfValues)
-{
-    rawValue = analogRead(1);
-    int value = (rawValue * numberOfValues) / 4096;
-
-    if (value >= numberOfValues)
-        value = numberOfValues - 1;
-
-    return value;
-}
 
 void setup() {
     Serial.begin(115200);
