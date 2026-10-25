@@ -4,8 +4,8 @@
 #include <vector>
 
 
-const char* ssid = "MEK_2.4G"; //"DIGI-33AS";
-const char* password = "2pc8X64w"; //"ehhCFYFhTt";
+const char* ssid = "DIGI-33AS"; //"DIGI-33AS";
+const char* password = "ehhCFYFhTt"; //"ehhCFYFhTt";
 
 int alarmHour = 0; //hour of the alarm
 int alarmMinute = 0; // min of the alarm
