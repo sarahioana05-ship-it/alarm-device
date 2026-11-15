@@ -15,4 +15,6 @@ void checkAlarms();
 
 bool addAlarm(int hour, int minute);
 
+extern bool alarmRinging;
+
 #endif
