@@ -1,0 +1,49 @@
+[33mcommit 3f4fda0ce8f1ce4daad1ccdb3cc73b348a8a3d18[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sun Nov 15 14:58:49 2026 +0200
+
+    done the clock.cpp and clock.h files
+
+[33mcommit 41caeffa051c9aa1fd926b67db92647058331858[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sun Oct 25 23:38:31 2026 +0200
+
+    headere/cpp potentiometru done
+
+[33mcommit 9533b0f34ddd9ca144fef9c4d590034d36dae045[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sun Oct 25 20:14:49 2026 +0200
+
+    25.10 incep sa bag niste modificari
+
+[33mcommit fc59e7afa5e3a734f40ee8a85d4fe748307673c3[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sun Sep 20 23:22:39 2026 +0300
+
+    solved pot noise issue + added no alarms case + solved some small issues with hours and minutes showing on screen
+
+[33mcommit 82d8475bcea3181d1e93dea3c82878647cd505f9[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sun Sep 20 00:28:33 2026 +0300
+
+    main menu + set alarms menu + show alarms menu done
+
+[33mcommit 28967672cb9d06197509d40ce172275eae3d8180[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sat Sep 19 19:25:27 2026 +0300
+
+    Revert "sters menu"
+    
+    This reverts commit 8ada5945b5d6c4df5c985cf0550d4a038dbd1cbc.
+
+[33mcommit 8ada5945b5d6c4df5c985cf0550d4a038dbd1cbc[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sat Sep 19 19:23:08 2026 +0300
+
+    sters menu
+
+[33mcommit 0d9c63c94b9c025d71add43d31dea2c186135d2d[m
+Author: sarah_ioana.bumbacea <ioana.bumbacea@stud.fils.upb.ro>
+Date:   Sat Sep 19 19:06:15 2026 +0300
+
+    first commit

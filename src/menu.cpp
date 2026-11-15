@@ -20,6 +20,9 @@ bool buttonPressed = false;
 
 bool alarmSet = false;
 
+int alarmSelection=0;
+int lastCheckAlarm=-1;
+
 
 void handleSetAlarmMenu()
 {
@@ -203,6 +206,45 @@ void handleMainMenu()
             delay(100);
             digitalWrite(18, LOW);
             delay(200);
+        }
+    }
+}
+
+
+void handleCheckAlarmsMenu()
+{
+    if (menuState != 2)
+        return;
+
+    if (alarms.size() == 0)
+    {
+        Serial.println("No existing alarms!");
+        Serial.println("Back to main menu");
+        menuState = 0;
+    }
+    else
+    {
+        alarmSelection = getPotValue(alarmSelection, alarms.size());
+
+        if (lastCheckAlarm != alarmSelection)
+        {
+            if (alarms[alarmSelection].time / 60 < 10)
+                Serial.print("0");
+
+            Serial.print(alarms[alarmSelection].time / 60);
+            Serial.print(":");
+
+            if (alarms[alarmSelection].time % 60 < 10)
+                Serial.print("0");
+
+            Serial.println(alarms[alarmSelection].time % 60);
+
+            if (alarms[alarmSelection].enabled == true)
+                Serial.println("enabled");
+            else
+                Serial.println("disabled");
+
+            lastCheckAlarm = alarmSelection;
         }
     }
 }

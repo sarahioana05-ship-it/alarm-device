@@ -6,6 +6,7 @@ extern int menuState;
 void handleMainMenu();
 void handleBackToMainMenu(bool alarmSet);
 void handleSetAlarmMenu();
+void handleCheckAlarmsMenu();
 
 extern bool alarmSet;
 

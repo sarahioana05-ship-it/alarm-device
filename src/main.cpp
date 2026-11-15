@@ -11,16 +11,7 @@
 const char* ssid = "MEK_2.4G"; //"DIGI-33AS";
 const char* password = "2pc8X64w"; //"ehhCFYFhTt";
 
-unsigned long alarmStartTime; // the start of an alarm
-
-bool alarmAlreadyExists = false;
-bool alarmRinging=false; //true when alarm rings
-
 int menuState = 0;
-
-int alarmSelection=0; //pot choice for alarms
-int lastCheckAlarm=-1;
-
 
 void setup() {
     Serial.begin(115200);
@@ -43,7 +34,6 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     setupClock();
-
 }
 
 void loop() 
@@ -64,35 +54,7 @@ void loop()
     handleSetAlarmMenu();
     checkAlarms();
 
-    //menu 2 - check alarms
-    if (menuState==2)
-    {
-      if(alarms.size()==0)
-      {
-        Serial.println("No existing alarms!");
-        Serial.println("Back to main menu");
-        menuState=0;
-      }
-
-      else
-      {
-        alarmSelection=getPotValue(alarmSelection,alarms.size());
-        if (lastCheckAlarm != alarmSelection)
-        {
-          if (alarms[alarmSelection].time / 60 <10) Serial.print("0");
-          Serial.print(alarms[alarmSelection].time / 60);
-          Serial.print(":");
-          if (alarms[alarmSelection].time % 60 <10) Serial.print("0");
-          Serial.println(alarms[alarmSelection].time % 60);
-
-          if (alarms[alarmSelection].enabled == true)
-          Serial.println("enabled");
-          else
-          Serial.println("disabled");
-          lastCheckAlarm=alarmSelection;
-        }
-      }
-    }
+    handleCheckAlarmsMenu();
   }
 
   // add cancel/delete option in checking alarms menu // i added this on the site

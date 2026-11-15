@@ -5,8 +5,8 @@
 
 std::vector<Alarm> alarms;
 
-extern bool alarmRinging;
-extern unsigned long alarmStartTime;
+bool alarmRinging = false;
+unsigned long alarmStartTime = 0;
 
 
 bool addAlarm(int hour, int minute)
