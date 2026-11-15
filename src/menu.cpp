@@ -23,7 +23,6 @@ bool alarmSet = false;
 int alarmSelection=0;
 int lastCheckAlarm=-1;
 
-
 void handleSetAlarmMenu()
 {
     if (menuState != 1)
@@ -210,41 +209,40 @@ void handleMainMenu()
     }
 }
 
-
 void handleCheckAlarmsMenu()
 {
-    if (menuState != 2)
-        return;
-
-    if (alarms.size() == 0)
+    if (menuState == 2)
     {
-        Serial.println("No existing alarms!");
-        Serial.println("Back to main menu");
-        menuState = 0;
-    }
-    else
-    {
-        alarmSelection = getPotValue(alarmSelection, alarms.size());
-
-        if (lastCheckAlarm != alarmSelection)
+        if (alarms.size() == 0)
         {
-            if (alarms[alarmSelection].time / 60 < 10)
-                Serial.print("0");
+            Serial.println("No existing alarms!");
+            Serial.println("Back to main menu");
+            menuState = 0;
+        }
+        else
+        {
+            alarmSelection = getPotValue(alarmSelection, alarms.size());
 
-            Serial.print(alarms[alarmSelection].time / 60);
-            Serial.print(":");
+            if (lastCheckAlarm != alarmSelection)
+            {
+                if (alarms[alarmSelection].time / 60 < 10)
+                    Serial.print("0");
 
-            if (alarms[alarmSelection].time % 60 < 10)
-                Serial.print("0");
+                Serial.print(alarms[alarmSelection].time / 60);
+                Serial.print(":");
 
-            Serial.println(alarms[alarmSelection].time % 60);
+                if (alarms[alarmSelection].time % 60 < 10)
+                    Serial.print("0");
 
-            if (alarms[alarmSelection].enabled == true)
-                Serial.println("enabled");
-            else
-                Serial.println("disabled");
+                Serial.println(alarms[alarmSelection].time % 60);
 
-            lastCheckAlarm = alarmSelection;
+                if (alarms[alarmSelection].enabled == true)
+                    Serial.println("enabled");
+                else
+                    Serial.println("disabled");
+
+                lastCheckAlarm = alarmSelection;
+            }
         }
     }
 }

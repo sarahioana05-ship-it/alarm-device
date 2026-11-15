@@ -7,7 +7,6 @@
 #include "alarms.h"
 #include "menu.h"
 
-
 const char* ssid = "MEK_2.4G"; //"DIGI-33AS";
 const char* password = "2pc8X64w"; //"ehhCFYFhTt";
 
@@ -34,6 +33,7 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     setupClock();
+
 }
 
 void loop() 
