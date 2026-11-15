@@ -3,6 +3,7 @@
 #include <time.h>
 #include <vector>
 #include <potentiometer.h>
+#include <clock.h>
 
 
 const char* ssid = "DIGI-33AS"; //"DIGI-33AS";
@@ -12,9 +13,6 @@ int alarmHour = 0; //hour of the alarm
 int alarmMinute = 0; // min of the alarm
 
 int setMode = 0; // mode for switching between hours and mins when setting alarm
-
-int lastMinute=-1; //last minute for refreshing the real time print
-int timeNow; // real time
 
 int i;
 
@@ -68,33 +66,24 @@ void setup() {
     Serial.print("ESP32 IP address: ");
     Serial.println(WiFi.localIP());
 
-    configTzTime("EET-2EEST,M3.5.0/3,M10.5.0/4", "pool.ntp.org");
+    setupClock();
 
 }
 
 void loop() 
 {
-    //gettin and showing real time on screen
-    struct tm timeinfo;
-    getLocalTime(&timeinfo);
-    timeNow=timeinfo.tm_hour*60+timeinfo.tm_min;
-    if (timeinfo.tm_min != lastMinute)
-    {
-        Serial.print("Current time: ");
-        if (timeinfo.tm_hour < 10) Serial.print("0");
-        Serial.print(timeinfo.tm_hour);
-        Serial.print(":");
-        if (timeinfo.tm_min < 10) Serial.print("0");
-        Serial.println(timeinfo.tm_min);
-        lastMinute=timeinfo.tm_min;
 
-        if (menuState==0)
-          Serial.println("Main Menu");
-        if (menuState==1)
-          Serial.println("Set Alarms Menu");
-        if (menuState==2)
-          Serial.println("Check Alarms Menu");
-    }
+      if (updateClock())
+      {
+
+      if (menuState==0)
+        Serial.println("Main Menu");
+      if (menuState==1)
+        Serial.println("Set Alarms Menu");
+      if (menuState==2)
+        Serial.println("Check Alarms Menu");
+
+      }
 
     //menu state 0 -> 1/2 set alarms/check alarms
     if (menuState==0 && digitalRead(03)==LOW && menuSelect==false)
@@ -369,7 +358,7 @@ void loop()
     }
   }
 
-  // add cancel/delete option in checking alarms menu
+  // add cancel/delete option in checking alarms menu // i added this on the site
   // add ring alarm daily/every x day of the week/just once
   // add scheduele on UI for the current day
   // make scheduele for the current day show only the tasks for the next 3 hours
