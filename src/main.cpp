@@ -6,11 +6,14 @@
 #include <clock.h>
 #include <alarms.h>
 #include <menu.h>
+#include <firebase_config.h>
+#include <WebServer.h>
 
-const char* ssid = "MEK_2.4G"; //"DIGI-33AS";
-const char* password = "2pc8X64w"; //"ehhCFYFhTt";
+const char* ssid = "DIGI-33AS"; //"DIGI-33AS";
+const char* password = "ehhCFYFhTt"; //"ehhCFYFhTt";
 
 int menuState = 0;
+WebServer server(80);
 
 void setup() {
     Serial.begin(115200);
@@ -34,10 +37,35 @@ void setup() {
 
     setupClock();
 
+    Serial.print("Firebase project: ");
+    Serial.println(FIREBASE_PROJECT_ID);
+
+    server.on("/", HTTP_GET, []() {
+        server.send(200, "text/html",
+            "<h1>ESP32 LED Control</h1>"
+            "<form action='/led/on' method='post'><button>LED On</button></form>"
+            "<form action='/led/off' method='post'><button>LED Off</button></form>");
+    });
+
+    server.on("/led/on", HTTP_POST, []() {
+          digitalWrite(18, HIGH);
+          server.sendHeader("Location", "/");
+          server.send(303, "text/plain", "");
+    });
+
+    server.on("/led/off", HTTP_POST, []() {
+        digitalWrite(18, LOW);
+        server.sendHeader("Location", "/");
+        server.send(303, "text/plain", "");
+    });
+
+    server.begin();
+
 }
 
 void loop() 
 {
+  server.handleClient();
     if (updateClock())
     {
       if (menuState==0)
