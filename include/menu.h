@@ -11,4 +11,8 @@ extern bool alarmSet;
 
 void handleCheckAlarmsMenu();
 
+void handleAlarmSettingsMenu();
+
+void handleRepeatMenu();
+
 #endif

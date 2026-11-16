@@ -1,7 +1,7 @@
-
 #include <Arduino.h>
-#include "alarms.h"
-#include "clock.h"
+#include <alarms.h>
+#include <clock.h>
+#include <time.h>
 
 std::vector<Alarm> alarms;
 
@@ -9,10 +9,11 @@ bool alarmRinging = false;
 unsigned long alarmStartTime = 0;
 
 
-bool addAlarm(int hour, int minute)
+bool addAlarm(int hour, int minute, RepeatMode repeat)
 {
     Alarm newAlarm;
     newAlarm.time = hour * 60 + minute;
+    newAlarm.repeat = repeat;
 
     for (int i = 0; i < alarms.size(); i++)
     {
@@ -59,26 +60,63 @@ bool addAlarm(int hour, int minute)
 
 void checkAlarms()
 {
+    struct tm timeinfo;
+
+    if (!getLocalTime(&timeinfo))
+        return;
+
+    int currentDay = timeinfo.tm_wday;
+
+    time_t currentTime = time(nullptr);
+    time_t currentMinute = currentTime / 60;
+
     for (int i = 0; i < alarms.size(); i++)
     {
-        if (timeNow == alarms[i].time &&
-            alarms[i].enabled == true)
+        if (alarms[i].enabled == true)
         {
-            Serial.println("alarm! alarm! alarm!");
+            bool correctDay = false;
 
-            digitalWrite(18, HIGH);
-            tone(17, 500);
+            if (alarms[i].repeat == ONCE)
+            {
+                correctDay = true;
+            }
+            else
+            {
+                int day = currentDay;
 
-            alarmStartTime = millis();
-            alarms[i].enabled = false;
-            alarmRinging = true;
+                if (day == 0)
+                    day = 7;
+
+                if (alarms[i].repeat == day)
+                    correctDay = true;
+            }
+
+            if (timeNow == alarms[i].time &&
+                correctDay &&
+                alarms[i].lastTriggered != currentMinute)
+            {
+                alarms[i].lastTriggered = currentMinute;
+                
+                Serial.println("alarm! alarm! alarm!");
+
+                digitalWrite(18, HIGH);
+                tone(17, 500);
+
+                alarmStartTime = millis();
+                alarmRinging = true;
+
+                if (alarms[i].repeat == ONCE)
+                {
+                    alarms[i].enabled = false;
+                }
+            }
         }
 
         if (alarmRinging == true)
         {
-            if (digitalRead(02) == LOW)
+            if (digitalRead(2) == LOW)
             {
-                Serial.println("alarm stoped");
+                Serial.println("alarm stopped");
 
                 digitalWrite(18, LOW);
                 noTone(17);

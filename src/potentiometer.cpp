@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "potentiometer.h"
+#include <potentiometer.h>
 
 int getPotValue(int currentValue, int numberOfValues)
 {

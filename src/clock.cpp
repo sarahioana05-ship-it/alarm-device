@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <time.h>
-#include "clock.h"
+#include <clock.h>
 
 int timeNow = 0;
 int lastMinute = -1;

@@ -4,8 +4,8 @@
 #include <vector>
 #include <potentiometer.h>
 #include <clock.h>
-#include "alarms.h"
-#include "menu.h"
+#include <alarms.h>
+#include <menu.h>
 
 const char* ssid = "MEK_2.4G"; //"DIGI-33AS";
 const char* password = "2pc8X64w"; //"ehhCFYFhTt";
@@ -50,20 +50,16 @@ void loop()
 
     handleMainMenu();
     handleBackToMainMenu(alarmSet);
-
     handleSetAlarmMenu();
     checkAlarms();
-
     handleCheckAlarmsMenu();
+    handleAlarmSettingsMenu();
+    handleRepeatMenu();
   }
 
-  // add cancel/delete option in checking alarms menu // i added this on the site
-  // add ring alarm daily/every x day of the week/just once
   // add scheduele on UI for the current day
   // make scheduele for the current day show only the tasks for the next 3 hours
   // make tasks have different characteristics - urgent, important, daily, pills, optional
   // make important/urgent task for any other day constantly be shown on screen
-  // make phone connection to send tasks with characteristic date and time
-  // add scheduele menu
-  // add delete option in menu
-  // add characteristic change in menu
+  // make phone connection to send tasks and alarms, here will be imported the date, time and other characteristics of these
+  // add scheduele menu - scheduele tasks will only be changed from the app
